@@ -20,7 +20,9 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Properties;
 import java.io.*;  // Reading user input.
+import static java.lang.Math.random;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.Executor;
 
 public class Game
@@ -42,7 +44,7 @@ public class Game
 
     String USERNAME = "tda357_017";
     String PASSWORD = "tda357_017";
-    Statement statement;
+    private static Statement statement;
 
     /* Print command optionssetup.
     * /!\ you don't need to change this function! */
@@ -68,41 +70,115 @@ public class Game
         System.out.println("    q[uit move]");
         System.out.println("    [...] is optional\n");
     }
-
+ 
     /* Given a town name, country and population, this function
       * should try to insert an area and a town (and possibly also a country)
       * for the given attributes.
       */
     void insertTown(Connection conn, String name, String country, String population) throws SQLException  {
-        statement = conn.createStatement();
-        String query = "SELECT count(*) FROM countries where name = " + country;
-        ResultSet result = statement.executeQuery(query);
+       
+        statement = conn.createStatement(); //connection till databas
+        /*
+        kollar ifall landet finns och skapa om det inte gör det.
+        */
+        String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
+        ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
         if(result.getInt(1) == 0){
-
+            query = "INSERT INTO countries VALUES("+ setString(country)+")";
+            statement.executeQuery(query);
         }
-        // TODO: Your implementation here
-
-
-        // TODO TO HERE
+        
+        /*
+        skapar aarea 
+        */
+        query = "SELECT count(*) FROM areas where country = " + setString(country) + " AND name = "+setString(name);        
+        result = statement.executeQuery(query);   
+        result.next();
+        if(result.getInt(1) == 0){
+            query = "INSERT INTO areas VALUES("+ setString(country)+","+setString(name)+","+setString(population)+")"; 
+            statement.executeQuery(query);
+        }
+        
+        /*
+        skapa town
+        */
+        query = makeQuery("SELECT count(*) FROM towns where country = % AND name = %", new String[]{country, name});
+        
+        result = statement.executeQuery(query);   
+        result.next();
+        if(result.getInt(1) == 0){
+            query = "INSERT INTO towns VALUES("+ setString(country)+","+setString(name)+")"; 
+            statement.executeQuery(query);
+        }
+        
     }
 
+    public String setString(String s){
+        return "'"+s+"'";
+    }
+    
+    
     /* Given a city name, country and population, this function
       * should try to insert an area and a city (and possibly also a country)
       * for the given attributes.
       * The city visitbonus should be set to 0.
       */
     void insertCity(Connection conn, String name, String country, String population) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
+        statement = conn.createStatement(); //connection till databas
+        /*
+        kollar ifall landet finns och skapa om det inte gör det.
+        */
+        String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
+        ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
+        result.next();
+        if(result.getInt(1) == 0){
+            query = "INSERT INTO countries VALUES("+ setString(country)+")";
+            statement.executeQuery(query);
+        }
+        
+        /*
+        skapar aarea 
+        */
+        query = "SELECT count(*) FROM areas where country = " + setString(country) + " AND name = "+setString(name);        
+        result = statement.executeQuery(query);   
+        result.next();
+        if(result.getInt(1) == 0){
+            query = "INSERT INTO areas VALUES("+ setString(country)+","+setString(name)+","+setString(population)+")"; 
+            statement.executeQuery(query);
+        }
+        
+        /*
+        skapaar city
+        */
+        query = makeQuery("SELECT count(*) FROM cities where country = % AND name = %", new String[]{country, name});
+        
+        result = statement.executeQuery(query);   
+        result.next();
+        if(result.getInt(1) == 0){
+            query = "INSERT INTO cities VALUES("+ setString(country)+","+setString(name)+","+"0"+")"; 
+            statement.executeQuery(query);
+        }
+        
+        
     }
 
+    private String makeQuery(String s, String[] args){
+      
+        for(int i = 0 ; i < args.length; i++){
+            s = s.replaceFirst("%", setString(args[i]));
+        }
+        return s;
+    }
+    
     /* Given two areas, this function
       * should try to insert a government owned road with tax 0
       * between these two areas.
       */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
+        
+        
+        
         // TODO: Your implementation here
 
         // TODO TO HERE
@@ -134,10 +210,61 @@ public class Game
       * The location should be random and the budget should be 1000.
      */
     int createPlayer(Connection conn, Player person) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-        return 0;
+        System.out.println("personnummer : +" + person.personnummer);
+        System.out.println("name : +" + person.playername);
+        System.out.println("countr : +" + person.country);
+        System.out.println("start : +" + person.startingArea);
+            /*
+        test
+        */
+            
+        
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT count(*) FROM persons where country = % AND personnummer = %", new String[]{person.country, person.personnummer});
+        System.out.println("test 1: " + query);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        
+        if(result.getInt(1)==0){
+            query = "SELECT count(*) FROM areas";
+            result = statement.executeQuery(query);   
+            result.next();
+            int i = result.getInt(1);
+            int test = result.getInt(1);
+            System.out.println("areas count : " + test);
+            Random rand = new Random();
+             i = rand.nextInt(i - 0 + 1);
+            System.out.println("random count : " + i);
+            
+            for(int j = 0; j < test; j++ ){
+                i = rand.nextInt(test - 0 + 1);
+                System.out.println("random count : " + i);
+            }
+             
+             query = " SELECT * FROM areas";
+             
+             
+             result = statement.executeQuery(query);
+             
+            
+             
+             result.next();
+             for(int j = 0; j <= i ; j++){
+                 result.next();
+             } 
+             String lcountry = result.getString("country");
+             String larea = result.getString("name");
+             System.out.println("innan makequery persons");
+             System.out.println("test 3 : " + query);
+             System.out.println(makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea}));
+             query = makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea});
+             statement.executeQuery(query);
+             return 1;
+        }
+        else{
+         
+            return 0;
+        }
     }
 
     /* Given a player and an area name and country name, this function
@@ -351,9 +478,16 @@ public class Game
                 String[] cmd = mode.split(" +");
                 cmd[0] = cmd[0].toLowerCase();
                 if ("new player".startsWith(cmd[0]) && (cmd.length == 5)) {
+                    
+                    for(String s : cmd)
+                        System.out.println(s);
+                    
                     Player nextplayer = new Player(cmd[1], cmd[2], cmd[3], cmd[4]);
+                    System.out.println("Player try add: " + cmd[1]+ cmd[2]+ cmd[3]+ cmd[4]);
+                    
                     if (createPlayer(conn, nextplayer) == 1) {
                         players.add(nextplayer);
+                        System.out.println("Player added: " + nextplayer);
                     }
                 } else if ("done".startsWith(cmd[0]) && (cmd.length == 1)) {
                     break;
@@ -487,6 +621,8 @@ public class Game
      * /!\ You don't need to change this function! */
     public static void main(String[] args) throws Exception
     {
+        
+        System.out.println(new File(args[0]).getAbsolutePath());
         String worldfile = args[0];
         Game g = new Game();
         g.play(worldfile);
