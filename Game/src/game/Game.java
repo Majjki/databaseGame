@@ -80,11 +80,7 @@ public class Game
     void insertTown(Connection conn, String name, String country, String population) throws SQLException  {
        
         statement = conn.createStatement(); //connection till databas
-        /*
-        kollar ifall landet finns och skapa om det inte gör det.
-        */
         String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
-        //System.out.println(query);
         ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
         if(result.getInt(1) == 0){
@@ -129,9 +125,6 @@ public class Game
       */
     void insertCity(Connection conn, String name, String country, String population) throws SQLException {
         statement = conn.createStatement(); //connection till databas
-        /*
-        kollar ifall landet finns och skapa om det inte gör det.
-        */
         String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
         ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
