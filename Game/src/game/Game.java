@@ -828,8 +828,6 @@ public class Game
      * /!\ You don't need to change this function! */
     public static void main(String[] args) throws Exception
     {
-        
-        System.out.println(new File(args[0]).getAbsolutePath());
         String worldfile = args[0];
         Game g = new Game();
         g.play(worldfile);
