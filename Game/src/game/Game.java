@@ -392,10 +392,10 @@ public class Game
             statement = conn.createStatement();
             String query = makeQuery("INSERT INTO roads VALUES(%,%,%,%,%,%,getval('roadtax'))", 
                     new String[]{
-                        area1,                  //fromarea
                         country1,               //fromcoutnry
-                        area2,                  //toarea    
+                        area1,                  //fromarea
                         country2,               //tocountry
+                        area2,                  //toarea    
                         person.country,         //ownercoutbry
                         person.personnummer     //ownerpersonnummer
                     });
