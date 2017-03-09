@@ -486,7 +486,7 @@ public class Game
         /*
         Send the update city with visitingbonus
         */
-        query = makeQuery("UPDATE cities SET visitingbonus = '1000' WHERE country = % AND name = %",
+        query = makeQuery("UPDATE cities SET visitbonus = '1000' WHERE country = % AND name = %",
                 new String[]{result.getString("country"),result.getString("name")});
         System.out.println("Sending query :" + query);
         
@@ -562,6 +562,7 @@ public class Game
             props.setProperty("password",PASSWORD);
 
             final Connection conn = DriverManager.getConnection(url, props);
+            resetDatabase(conn);
 
 			/* This block creates the government entry and the necessary
 			 * country and area for that.
