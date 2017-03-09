@@ -179,6 +179,13 @@ public class Game
       */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
         
+        //statement = conn.createStatement(); //connection till databas
+        //String query = "INSERT INTO roads VALUES(%,%,%,%,%,%)" + setString(country); //skapar commando till postgresql
+        //ResultSet result = statement.executeQuery(query);
+        //ResultSet result = statement.executeQuery(query);
+        
+        
+        
         
         
         // TODO: Your implementation here
