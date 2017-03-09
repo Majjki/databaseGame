@@ -82,11 +82,12 @@ public class Game
         kollar ifall landet finns och skapa om det inte gör det.
         */
         String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
+        //System.out.println(query);
         ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO countries VALUES("+ setString(country)+")";
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
         /*
@@ -97,7 +98,7 @@ public class Game
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO areas VALUES("+ setString(country)+","+setString(name)+","+setString(population)+")"; 
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
         /*
@@ -109,7 +110,7 @@ public class Game
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO towns VALUES("+ setString(country)+","+setString(name)+")"; 
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
     }
@@ -134,7 +135,7 @@ public class Game
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO countries VALUES("+ setString(country)+")";
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
         /*
@@ -145,7 +146,7 @@ public class Game
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO areas VALUES("+ setString(country)+","+setString(name)+","+setString(population)+")"; 
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
         /*
@@ -157,7 +158,7 @@ public class Game
         result.next();
         if(result.getInt(1) == 0){
             query = "INSERT INTO cities VALUES("+ setString(country)+","+setString(name)+","+"0"+")"; 
-            statement.executeQuery(query);
+            statement.executeUpdate(query);
         }
         
         
@@ -168,6 +169,7 @@ public class Game
         for(int i = 0 ; i < args.length; i++){
             s = s.replaceFirst("%", setString(args[i]));
         }
+        //System.out.println("makeq: " + s);
         return s;
     }
     
@@ -218,13 +220,12 @@ public class Game
         test
         */
             
-        
         statement = conn.createStatement();
         String query = makeQuery("SELECT count(*) FROM persons where country = % AND personnummer = %", new String[]{person.country, person.personnummer});
         System.out.println("test 1: " + query);
         ResultSet result = statement.executeQuery(query);
         result.next();
-        
+        System.out.println("test 1 result: " + result.getInt(1));
         if(result.getInt(1)==0){
             query = "SELECT count(*) FROM areas";
             result = statement.executeQuery(query);   
@@ -241,7 +242,7 @@ public class Game
                 System.out.println("random count : " + i);
             }
              
-             query = " SELECT * FROM areas";
+             query = "SELECT * FROM areas";
              
              
              result = statement.executeQuery(query);
@@ -253,12 +254,18 @@ public class Game
                  result.next();
              } 
              String lcountry = result.getString("country");
-             String larea = result.getString("name");
+              String larea = result.getString("name");
+             
+             System.out.println("random country is: " + lcountry + "  random area is : " + larea);
+             
+             
              System.out.println("innan makequery persons");
              System.out.println("test 3 : " + query);
              System.out.println(makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea}));
              query = makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea});
-             statement.executeQuery(query);
+             statement.executeUpdate(query);
+             
+             System.out.println(result);
              return 1;
         }
         else{
@@ -274,7 +281,12 @@ public class Game
       */
     void getNextMoves(Connection conn, Player person, String area, String country) throws SQLException {
         // TODO: Your implementation here
-
+        System.out.println("You checked for nextmoves for"+ area +" and "+ country);
+        String query = ("You checked for nextmoves for"+ area +" and "+ country);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        
+        
         // TODO TO HERE
     }
 
@@ -286,7 +298,16 @@ public class Game
     void getNextMoves(Connection conn, Player person) throws SQLException {
         // TODO: Your implementation here
         // hint: Use your implementation of the overloaded getNextMoves function
-
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT * FROM nextmoves where country = % AND personnummer = %", new String[]{person.country, person.personnummer});
+        System.out.println("getNextMoves : " + query);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        while(result.next()){
+            System.out.println(result.getString("destarea") + " " + result.getString("destcountry")+ " " + result.getString("cost"));
+        }
+        
+        System.out.println("You checked for nextmoves for"+ person);
         // TODO TO HERE
     }
 
@@ -382,13 +403,18 @@ public class Game
 
         // TODO TO HERE
     }
+    
+    void resetDatabase(Connection conn) throws SQLException {
+        statement = conn.createStatement();
+        String query = "truncate countries cascade";
+        statement.executeUpdate(query);
+        System.out.println("Resetting database");
+    }
 
     /* This function should print the winner of the game based on the currently highest budget.
       */
     void announceWinner(Connection conn) throws SQLException {
         // TODO: Your implementation here
-
-        // TODO TO HERE
     }
 
     void play (String worldfile) throws IOException {
@@ -455,6 +481,8 @@ public class Game
                 BufferedReader br = new BufferedReader(new FileReader(worldfile));
                 String line;
                 while ((line = br.readLine()) != null) {
+                    
+                System.out.println(line);
                     String[] cmd = line.split(" +");
                     if ("ROAD".equals(cmd[0]) && (cmd.length == 5)) {
                         insertRoad(conn, cmd[1], cmd[2], cmd[3], cmd[4]);
@@ -477,10 +505,13 @@ public class Game
                 String mode = readLine("? > ");
                 String[] cmd = mode.split(" +");
                 cmd[0] = cmd[0].toLowerCase();
+                
                 if ("new player".startsWith(cmd[0]) && (cmd.length == 5)) {
                     
+                    System.out.println("Cmd input as: ");
                     for(String s : cmd)
-                        System.out.println(s);
+                        System.out.print(s + "   :   ");
+                    System.out.println("Cmd input end ----------------");
                     
                     Player nextplayer = new Player(cmd[1], cmd[2], cmd[3], cmd[4]);
                     System.out.println("Player try add: " + cmd[1]+ cmd[2]+ cmd[3]+ cmd[4]);
@@ -593,6 +624,8 @@ public class Game
             }
             announceWinner(conn);
             System.out.println("\nGG!\n");
+            
+            resetDatabase(conn);
 
             conn.close();
         } catch (SQLException e) {
