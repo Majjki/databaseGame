@@ -22,6 +22,8 @@ import java.util.Properties;
 import java.io.*;  // Reading user input.
 import static java.lang.Math.random;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executor;
 
@@ -197,20 +199,24 @@ public class Game
      * should return the area name of the player's current location.
      */
     String getCurrentArea(Connection conn, Player person) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-        return "";
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT locationarea FROM persons where country = % AND personnummer = %", new String[]{person.country, person.personnummer});
+        System.out.println("test 1: " + query);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        return (result.getString("locationarea"));
     }
 
     /* Given a player, this function
      * should return the country name of the player's current location.
      */
     String getCurrentCountry(Connection conn, Player person) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-        return "";
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT locationcountry FROM persons where country = % AND personnummer = %", new String[]{person.country, person.personnummer});
+        System.out.println("test 1: " + query);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        return (result.getString("locationcountry"));
     }
 
     /* Given a player, this function
@@ -421,7 +427,26 @@ public class Game
     /* This function should print the winner of the game based on the currently highest budget.
       */
     void announceWinner(Connection conn) throws SQLException {
-        // TODO: Your implementation here
+        statement = conn.createStatement();
+        String query = "SELECT * FROM persons";
+        System.out.println("Query sendt : " + query);
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        
+        ArrayList<ResultSet> resultList = new ArrayList<ResultSet>();
+        ResultSet currentWinner = result;
+        result.next();
+        while(result.next()){
+            if(result.getString("budget") == currentWinner.getString("budget"))
+                resultList.add(result);
+            else if (result.getString("budget") > currentWinner.getString("budget"))
+                currentWinner = result;
+            System.out.println(playerList.keySet());
+            result.getString("cost");
+        }
+        
+        playerList.size();
+        return (result.getString("locationcountry"));
     }
 
     void play (String worldfile) throws IOException {
