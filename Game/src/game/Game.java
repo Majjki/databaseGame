@@ -357,11 +357,7 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int sellRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-
-        return 0;
+        return 0;  
     }
 
     /* Given a player and a city, this function
@@ -369,11 +365,22 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int sellHotel(Connection conn, Player person, String city, String country) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-
-        return 0;
+        try{
+            statement = conn.createStatement();
+            String query = makeQuery("DELETE FROM hotels WHERE locationcountry = % AND locationarea = % AND ownercountry = % AND ownerpersonnummer = %", 
+                    new String[]{
+                        country,                //area
+                        city,                   //coutnry
+                        person.country,         //ownercoutbry
+                        person.personnummer     //ownerpersonnummer
+                    });
+            System.out.println("Sending query : " + query);
+            statement.executeUpdate(query);
+        }catch(SQLException e){
+            System.out.println(e.toString());
+            return 0;
+        }
+        return 1;   
     }
 
     /* Given a player, a from area and a to area, this function
@@ -381,10 +388,25 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int buyRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
-        // TODO: Your implementation here
+        try{
+            statement = conn.createStatement();
+            String query = makeQuery("INSERT INTO roads VALUES(%,%,%,%,%,%,getval('roadtax'))", 
+                    new String[]{
+                        area1,                  //fromarea
+                        country1,               //fromcoutnry
+                        area2,                  //toarea    
+                        country2,               //tocountry
+                        person.country,         //ownercoutbry
+                        person.personnummer     //ownerpersonnummer
+                    });
 
-        // TODO TO HERE
-        return 0;
+            System.out.println("Sending query : " + query);
+            statement.executeUpdate(query);
+        }catch(SQLException e){
+            System.out.println(e.toString());
+            return 0;
+        }
+        return 1;
     }
 
     /* Given a player and a city, this function
@@ -392,10 +414,25 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int buyHotel(Connection conn, Player person, String name, String city, String country) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-        return 0;
+        
+        try{
+            statement = conn.createStatement();
+            String query = makeQuery("INSERT INTO hotels VALUES(%,%,%,%,%)", 
+                    new String[]{
+                        name,
+                        country,
+                        city,
+                        person.country, 
+                        person.personnummer
+                    });
+            
+            System.out.println("Sending query : " + query);
+            statement.executeUpdate(query);
+        }catch(SQLException e){
+            System.out.println(e.toString());
+            return 0;
+        }
+        return 1;
     }
 
     /* Given a player and a new location, this function
@@ -403,18 +440,57 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int changeLocation(Connection conn, Player person, String area, String country) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
-        return 0;
+        try{
+            statement = conn.createStatement();
+            String query = makeQuery("UPDATE persons SET locationarea = %, locationcountry = % WHERE country = % AND personnummer = %", 
+                new String[]{
+                    area,
+                    country,
+                    person.country, 
+                    person.personnummer
+                });
+            System.out.println("Sending query : " + query);
+            statement.executeUpdate(query);
+        }catch(SQLException e){
+            System.out.println(e.toString());
+            return 0;
+        }
+        return 1;
     }
 
-    /* This function should add the visitbonus of 1000 to a random city
-      */
+    /* 
+    This function should add the visitbonus of 1000 to a random city
+    */
     void setVisitingBonus(Connection conn) throws SQLException {
-        // TODO: Your implementation here
-
-        // TODO TO HERE
+        /*
+        Select random nummer between 0 - count cities
+        */
+        String query = "SELECT count(*) FROM cities";
+        ResultSet result = statement.executeQuery(query);   
+        result.next();
+        int i = result.getInt(1);
+        Random rand = new Random();
+         i = rand.nextInt(i - 0 + 1);
+        System.out.println("random count : " + i);
+        
+        /*
+        select random nummered cities
+        */
+        query = "SELECT * FROM cities";
+        result = statement.executeQuery(query);
+        result.next();
+        for(int j = 0; j <= i ; j++){
+            result.next();
+        } 
+        
+        /*
+        Send the update city with visitingbonus
+        */
+        query = makeQuery("UPDATE cities SET visitingbonus = '1000' WHERE country = % AND name = %",
+                new String[]{result.getString("country"),result.getString("name")});
+        System.out.println("Sending query :" + query);
+        
+        statement.executeUpdate(query);
     }
     
     void resetDatabase(Connection conn) throws SQLException {
@@ -439,14 +515,17 @@ public class Game
         while(result.next()){
             if(result.getString("budget") == currentWinner.getString("budget"))
                 resultList.add(result);
-            else if (result.getString("budget") > currentWinner.getString("budget"))
+            else if (Integer.parseInt(result.getString("budget")) > Integer.parseInt(result.getString(currentWinner.getString("budget"))))
                 currentWinner = result;
-            System.out.println(playerList.keySet());
-            result.getString("cost");
         }
         
-        playerList.size();
-        return (result.getString("locationcountry"));
+        resultList.add(currentWinner);
+        
+        System.out.println("The winner iz: ");
+        for(ResultSet rS: resultList){
+            System.out.println(rS.getString("name") + " with personnummer: " + rS.getString("personnummer") + " from :" + rS.getString("country"));
+        }
+        
     }
 
     void play (String worldfile) throws IOException {
