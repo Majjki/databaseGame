@@ -174,18 +174,17 @@ public class Game
       */
     void insertRoad(Connection conn, String area1, String country1, String area2, String country2) throws SQLException {
         
-        //statement = conn.createStatement(); //connection till databas
-        //String query = "INSERT INTO roads VALUES(%,%,%,%,%,%)" + setString(country); //skapar commando till postgresql
-        //ResultSet result = statement.executeQuery(query);
-        //ResultSet result = statement.executeQuery(query);
-        
-        
-        
-        
-        
-        // TODO: Your implementation here
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT count(*) FROM combinedroads2 where fromcountry = % AND fromarea = % AND destcountry = % " +
+                                "AND destarea = % AND ownerpersonnummer = '' AND ownercountry = ''",new String[]{country1, area1, country2, area2});
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        if(result.getInt(1)==0){
+            query = makeQuery("INSERT INTO roads values( %, %, %, %,'','', 0)",new String[]{country1, area1, country2, area2});
+            statement.executeUpdate(query);
+        }
 
-        // TODO TO HERE
+
     }
 
     /* Given a player, this function
