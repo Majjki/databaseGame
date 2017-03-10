@@ -275,10 +275,15 @@ public class Game
              System.out.println("innan makequery persons");
              System.out.println("test 3 : " + query);
              System.out.println(makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea}));
-             query = makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea});
-             statement.executeUpdate(query);
-             
-             System.out.println(result);
+             try{
+                query = makeQuery("INSERT INTO persons VALUES(%,%,%,%,%,1000)", new String[]{person.country, person.personnummer, person.playername, lcountry, larea});
+                statement.executeUpdate(query);
+
+                System.out.println(result);
+             }catch(Exception e){
+                 System.out.println(e);
+                 return 0;
+             }
              return 1;
         }
         else{
@@ -513,7 +518,7 @@ public class Game
         ResultSet currentWinner = result;
         result.next();
         while(result.next()){
-            if(result.getString("budget") == currentWinner.getString("budget"))
+            if(result.getString("budget") == currentWinner.getString("budget") && result.getString("personnummer") != currentWinner.getString("personnummer"))
                 resultList.add(result);
             else if (Integer.parseInt(result.getString("budget")) > Integer.parseInt(result.getString(currentWinner.getString("budget"))))
                 currentWinner = result;
