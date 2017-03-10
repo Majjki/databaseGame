@@ -80,11 +80,7 @@ public class Game
     void insertTown(Connection conn, String name, String country, String population) throws SQLException  {
        
         statement = conn.createStatement(); //connection till databas
-        /*
-        kollar ifall landet finns och skapa om det inte gör det.
-        */
         String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
-        //System.out.println(query);
         ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
         if(result.getInt(1) == 0){
@@ -129,9 +125,6 @@ public class Game
       */
     void insertCity(Connection conn, String name, String country, String population) throws SQLException {
         statement = conn.createStatement(); //connection till databas
-        /*
-        kollar ifall landet finns och skapa om det inte gör det.
-        */
         String query = "SELECT count(*) FROM countries where name = " + setString(country); //skapar commando till postgresql
         ResultSet result = statement.executeQuery(query);   //skickar commando till postgresql
         result.next();
@@ -298,14 +291,14 @@ public class Game
      * The output should include area names, country names and the associated road-taxes
       */
     void getNextMoves(Connection conn, Player person, String area, String country) throws SQLException {
-        // TODO: Your implementation here
-        System.out.println("You checked for nextmoves for"+ area +" and "+ country);
-        String query = ("You checked for nextmoves for"+ area +" and "+ country);
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT * FROM combinedroads2 WHERE fromcountry = % AND fromarea = %",new String[]{country, area});
         ResultSet result = statement.executeQuery(query);
         result.next();
-        
-        
-        // TODO TO HERE
+        System.out.println("Possible moves from " + area + "," + country + "requested by "+person.playername);
+        while(result.next()){
+            System.out.println(result.getString("destarea") + ", " + result.getString("destcountry")+ ", cost: " + result.getString("cost"));
+        }
     }
 
     /* Given a player, this function
@@ -321,11 +314,12 @@ public class Game
         System.out.println("getNextMoves : " + query);
         ResultSet result = statement.executeQuery(query);
         result.next();
+        System.out.println("Possible moves for " + person.playername+ ":");
         while(result.next()){
             System.out.println(result.getString("destarea") + " " + result.getString("destcountry")+ " " + result.getString("cost"));
         }
         
-        System.out.println("You checked for nextmoves for"+ person);
+
         // TODO TO HERE
     }
 
@@ -333,28 +327,66 @@ public class Game
      * should list all properties (roads and hotels) of the person
      * that is identified by the tuple of personnummer and country.
      */
-    void listProperties(Connection conn, String personnummer, String country) {
-        // TODO: Your implementation here
+    void listProperties(Connection conn, String personnummer, String country) throws SQLException {
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT * FROM roads WHERE ownerpersonnummer = % AND ownercountry = %",new String[]{personnummer, country});
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        System.out.println("Properties of person with personnummer: "+ personnummer+" and country: " +country );
+        System.out.println("\nRoads");
+        while(result.next()){
+            System.out.println(result.getString("fromarea")+", "+result.getString("fromcountry")+" - "
+                                +result.getString("destarea")+", "+result.getString("destcountry")+" Roadtax: " + result.getString("roadtax"));
+        }
+        query = makeQuery("SELECT * FROM hotels WHERE ownercountry = % AND ownerpersonnummer = %",new String[]{country, personnummer});
+        result = statement.executeQuery(query);
+        result.next();
+        System.out.println("\nHotels");
+        while(result.next()){
+            System.out.println(result.getString("name")+" - "+result.getString("locationname")+", "+result.getString("locationcountry")
+                                            /*+" cost: " +result.getString("price")*/);
+        }
 
-        // TODO TO HERE
+
     }
 
     /* Given a player, this function
      * should list all properties of the player.
      */
     void listProperties(Connection conn, Player person) throws SQLException {
-        // TODO: Your implementation here
-        // hint: Use your implementation of the overlaoded listProperties function
-
-        // TODO TO HERE
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT * FROM roads WHERE ownerpersonnummer = % AND ownercountry = %",new String[]{person.personnummer, person.country});
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        System.out.println("Properties of plaer: "+ person.playername );
+        System.out.println("\nRoads");
+        while(result.next()){
+            System.out.println(result.getString("fromarea")+", "+result.getString("fromcountry")+" - "
+                    +result.getString("destarea")+", "+result.getString("destcountry")+" Roadtax: " + result.getString("roadtax"));
+        }
+        query = makeQuery("SELECT * FROM hotels WHERE ownercountry = % AND ownerpersonnummer = %",new String[]{person.country, person.personnummer});
+        result = statement.executeQuery(query);
+        result.next();
+        System.out.println("\nHotels");
+        while(result.next()){
+            System.out.println(result.getString("name")+" - "+result.getString("locationname")+", "+result.getString("locationcountry")
+                                            /*+" cost: " +result.getString("price")*/);
+        }
     }
 
     /* This function should print the budget, assets and refund values for all players.
      */
     void showScores(Connection conn) throws SQLException {
-        // TODO: Your implementation here
+        statement = conn.createStatement();
+        String query = "SELECT * FROM assetsummary";
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        System.out.println("\nAsset summary:");
+        while(result.next()){
+            System.out.println("("+result.getString("country")+", "+result.getString("personnummer")+") - Budget: "+
+                    result.getString("budget")+" Assets: "+result.getString("assets")+" Reclaimable: "+result.getString("reclaimable"));
+        }
 
-        // TODO TO HERE
     }
 
     /* Given a player, a from area and a to area, this function
@@ -362,7 +394,37 @@ public class Game
      * and return 1 in case of a success and 0 otherwise.
      */
     int sellRoad(Connection conn, Player person, String area1, String country1, String area2, String country2) throws SQLException {
-        return 0;  
+        statement = conn.createStatement();
+        String query = makeQuery("SELECT count(*) from roads where fromcountry = % and fromarea % and tocountry = %" +
+                "                    and toarea = % and ownercountry = % and ownerpersonnummer = % ",
+                                    new String[]{country1, area1, country2,area2, person.country, person.personnummer});
+        ResultSet result = statement.executeQuery(query);
+        result.next();
+        if(result.getInt(1) == 1){
+            query = makeQuery("DELETE FROM roads WHERE fromcountry = % and fromarea % and tocountry = %" +
+                                "and toarea = % and ownercountry = % and ownerpersonnummer = % ",
+                                new String[]{country1,area1,country2,area2, person.country, person.personnummer});
+            statement.executeUpdate(query);
+            return(1);
+        }
+        else{
+            query = makeQuery("SELECT count(*) from roads where fromcountry = % and fromarea % and tocountry = %" +
+                            "and toarea = % and ownercountry = % and ownerpersonnummer = % ",
+                            new String[]{country2, area2, country1,area1, person.country, person.personnummer});
+            result = statement.executeQuery(query);
+            result.next();
+            if(result.getInt(1) == 1){
+                query = makeQuery("DELETE FROM roads WHERE fromcountry = % and fromarea % and tocountry = %" +
+                                "and toarea = % and ownercountry = % and ownerpersonnummer = % ",
+                        new String[]{country2,area2,country1,area1, person.country, person.personnummer});
+                statement.executeUpdate(query);
+                return(1);
+            }
+            else{
+                return(0);
+            }
+
+        }
     }
 
     /* Given a player and a city, this function
@@ -771,8 +833,6 @@ public class Game
      * /!\ You don't need to change this function! */
     public static void main(String[] args) throws Exception
     {
-        
-        System.out.println(new File(args[0]).getAbsolutePath());
         String worldfile = args[0];
         Game g = new Game();
         g.play(worldfile);
